@@ -1,4 +1,4 @@
-# 仕様書: 軽快PDFビューア (Android)
+# 仕様書: Feather PDF（軽快PDFビューア） (Android)
 
 ## 目的
 Androidスマホで「めちゃめちゃ軽快に」PDFを閲覧できるアプリ。起動・ページ表示・スクロール・ズームのすべてが速いことを最優先にする。機能の多さより速さと安定性。
@@ -7,7 +7,7 @@ Androidスマホで「めちゃめちゃ軽快に」PDFを閲覧できるアプ�
 - 言語: Kotlin。UIは **Android View**（Jetpack Composeは使わない。起動速度とAPKサイズのため）。
 - PDF描画: Android標準の `android.graphics.pdf.PdfRenderer`（ネイティブライブラリを同梱しない。APKを小さく保つ）。
 - 依存ライブラリは最小限: `androidx.core:core-ktx`, `androidx.recyclerview:recyclerview` 程度。AppCompat/Material/Compose は使わない（テーマは `android:Theme.Material.NoActionBar` 系 などフレームワークテーマを使う）。
-- パッケージ名: `com.nyoki.lightpdf` / アプリ名: 「軽快PDF」
+- パッケージ名: `com.nyoki.lightpdf` / アプリ名: 「Feather PDF」（旧称: 軽快PDF）
 - minSdk 26, targetSdk 35, compileSdk 35
 - ビルド: Android Gradle Plugin 8.7.x, Kotlin 2.0.21, Gradle 8.9（Kotlin DSL）。
 - release ビルドは R8 (`isMinifyEnabled = true`, `isShrinkResources = true`) を有効にし、サイドロードできるよう debug 署名で署名する。

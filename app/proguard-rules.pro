@@ -1,4 +1,4 @@
-# Minimal ProGuard / R8 rules for LightPDF
+# Minimal ProGuard / R8 rules for Feather PDF
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 

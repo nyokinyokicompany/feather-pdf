@@ -1,4 +1,4 @@
-# 軽快PDF (LightPDF)
+# Feather PDF（フェザーPDF）
 
 Androidスマートフォンで「めちゃめちゃ軽快に」PDFを閲覧することに特化した超軽量・高速PDFビューアアプリです。
 

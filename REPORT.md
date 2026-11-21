@@ -1,4 +1,4 @@
-# 開発報告書: 軽快PDF（Android PDFビューア）
+# 開発報告書: Feather PDF（Android PDFビューア）
 
 作成日: 2026-11-21 / 司令塔: Claude Opus 5.5 / 実装: Neon（gemini-4-neon-high, agy） / レビュー: Argon（gemini-4-argon-high, agy）
 
@@ -10,7 +10,7 @@
 | ループ回数 | 2回（最大3回のうち） |
 | ビルド | `assembleRelease` 成功（司令塔が clean ビルドで独自確認）/ Lint エラー・警告 0（Neon報告） |
 | 成果物 | `app/build/outputs/apk/release/app-release.apk`（199,908 bytes ≒ **195KB**、debug署名でサイドロード可） |
-| パッケージ | `com.nyoki.lightpdf` / アプリ名「軽快PDF」/ minSdk 26・targetSdk 35 |
+| パッケージ | `com.nyoki.lightpdf` / アプリ名「Feather PDF」/ minSdk 26・targetSdk 35 |
 
 ## 2. スコア推移
 
