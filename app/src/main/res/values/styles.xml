@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.LightPdf" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/ds_bg</item>
+        <item name="android:colorPrimary">@color/ds_primary</item>
+        <item name="android:colorAccent">@color/ds_accent</item>
+        <item name="android:textColorPrimary">@color/ds_text</item>
+        <item name="android:textColorSecondary">@color/ds_text_secondary</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <style name="Theme.LightPdf.Viewer" parent="Theme.LightPdf">
+        <item name="android:windowBackground">@color/ds_bg_viewer</item>
+    </style>
+
+    <style name="Theme.LightPdf.Dialog" parent="android:Theme.Material.Dialog.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.68</item>
+        <item name="android:colorAccent">@color/ds_accent</item>
+    </style>
+</resources>

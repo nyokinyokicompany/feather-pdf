@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="ds_radius_control">14dp</dimen>
+    <dimen name="ds_radius_panel">14dp</dimen>
+    <dimen name="pdf_page_gap">8dp</dimen>
+</resources>

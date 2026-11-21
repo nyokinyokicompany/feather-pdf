@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">軽快PDF</string>
+    <string name="app_subtitle">高速・軽量 PDF ビューア</string>
+
+    <!-- Home -->
+    <string name="action_open_pdf">PDFを開く</string>
+    <string name="section_recent_files">最近開いたファイル</string>
+    <string name="empty_recent_title">最近開いたPDFはありません</string>
+    <string name="empty_recent_desc">上の「PDFを開く」ボタン、または他アプリの共有・ファイル選択からPDFを開けます。</string>
+    <string name="recent_hint_long_press">長押しで履歴から削除</string>
+    <string name="recent_page_progress">%1$d / %2$d ページ</string>
+    <string name="recent_page_only">%1$d ページ目</string>
+    <string name="recent_zoom_badge">%1$.1fx</string>
+
+    <!-- Viewer -->
+    <string name="cd_back">戻る</string>
+    <string name="cd_night_mode">夜間モード切替</string>
+    <string name="cd_page_jump">ページ指定へ移動</string>
+    <string name="page_indicator_format">%1$d / %2$d</string>
+    <string name="zoom_indicator_format">%1$d%%</string>
+    <string name="night_mode_on">夜間モード: オン</string>
+    <string name="night_mode_off">夜間モード: オフ</string>
+    <string name="loading_pdf">読み込み中…</string>
+    <string name="untitled_pdf">無題のPDF</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_jump_title">ページを指定して移動</string>
+    <string name="dialog_jump_hint">ページ番号（1〜%1$d）</string>
+    <string name="dialog_jump_invalid">1〜%1$d の範囲で入力してください</string>
+    <string name="action_jump">移動</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="action_remove">削除</string>
+    <string name="action_close">閉じる</string>
+    <string name="dialog_remove_recent_title">履歴から削除</string>
+    <string name="dialog_remove_recent_message">「%1$s」を最近開いたファイル一覧から削除しますか？\n（端末内のファイル本体は削除されません）</string>
+    <string name="toast_removed_recent">履歴から削除しました</string>
+
+    <!-- Errors -->
+    <string name="error_title">PDFを開けませんでした</string>
+    <string name="error_password_protected">パスワードで保護されたPDFは表示できません。</string>
+    <string name="error_permission_or_missing">ファイルへのアクセス権限が切れているか、ファイルが見つかりません。もう一度ファイルを開き直してください。</string>
+    <string name="error_corrupted">ファイルが破損しているか、対応していないPDF形式です。</string>
+    <string name="error_empty_pdf">ページが含まれていないPDFです。</string>
+    <string name="error_no_uri">開くPDFファイルが指定されていません。</string>
+    <string name="error_unknown">PDFの読み込み中にエラーが発生しました。</string>
+    <string name="action_remove_from_recent">履歴から削除して戻る</string>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Liquid Titanium document silhouette -->
+    <path android:pathData="M34,26 C34,23.8 35.8,22 38,22 L60,22 L74,36 L74,82 C74,84.2 72.2,86 70,86 L38,86 C35.8,86 34,84.2 34,82 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="74"
+                android:endY="86"
+                android:startX="34"
+                android:startY="22"
+                android:type="linear">
+                <item android:color="#F5FBFF" android:offset="0" />
+                <item android:color="#B7C6CF" android:offset="0.55" />
+                <item android:color="#8093A0" android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Folded corner highlight -->
+    <path
+        android:fillColor="#DCE7EE"
+        android:pathData="M60,22 L74,36 L63,36 C61.3,36 60,34.7 60,33 Z" />
+
+    <!-- Speed bolt accent (Liquid Titanium violet glow) -->
+    <path
+        android:fillColor="#8A7CFF"
+        android:pathData="M57,41 L43,59 L53,59 L49,76 L65,55 L55,55 Z" />
+
+    <!-- Specular rim accent -->
+    <path
+        android:fillColor="#F5FBFF"
+        android:fillAlpha="0.65"
+        android:pathData="M57,41 L46,56 L51,56 L57,46 Z" />
+</vector>

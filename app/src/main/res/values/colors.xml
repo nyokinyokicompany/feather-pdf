@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Liquid Titanium Design System Tokens -->
+    <color name="ds_bg">#070B12</color>
+    <color name="ds_bg_viewer">#0B0F17</color>
+    <color name="ds_surface">#C7121819</color>
+    <color name="ds_surface_strong">#E0211E19</color>
+    <color name="ds_toolbar_bg">#D9121819</color>
+
+    <color name="ds_primary">#B7C6CF</color>
+    <color name="ds_accent">#8A7CFF</color>
+    <color name="ds_highlight">#F5FBFF</color>
+    <color name="ds_text">#F5FBFF</color>
+    <color name="ds_text_secondary">#A6F5FBFF</color>
+    <color name="ds_text_muted">#73F5FBFF</color>
+    <color name="ds_text_dark">#071014</color>
+    <color name="ds_danger">#57D7C5</color>
+
+    <!-- Borders & effects -->
+    <color name="ds_border_card">#47B7C6CF</color>
+    <color name="ds_border_input">#598A7CFF</color>
+    <color name="ds_border_input_focus">#CC8A7CFF</color>
+    <color name="ds_border_button">#CCFFFFFF</color>
+    <color name="ds_border_toolbar">#38B7C6CF</color>
+    <color name="ds_input_bg">#47000000</color>
+    <color name="ds_ripple">#338A7CFF</color>
+    <color name="ds_ripple_light">#33071014</color>
+    <color name="ds_glow_top_left">#2EB7C6CF</color>
+</resources>

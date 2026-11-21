@@ -1,0 +1,15 @@
+あなたは実装担当のAndroidエンジニア「Neon」です。カレントディレクトリ D:\AI_SSD\AndroidPDF\AndroidPDF に、SPEC.md の仕様どおりの Android アプリをゼロから実装してください。DESIGN.md も読んでデザインに反映してください。
+
+環境:
+- JDK17 / Android SDK (platforms;android-35, build-tools;35.0.0) / Gradle 8.9 は D:\AI_SSD\AndroidPDF\toolchain に用意済み。インターネット接続あり（Maven依存は取得可能）。
+- local.properties に sdk.dir=D\:\AI_SSD\AndroidPDF\toolchain\sdk を書くこと（.gitignore 対象）。
+- ビルドは `cmd /c D:\AI_SSD\AndroidPDF\toolchain\build.bat` （引数なしで assembleRelease。`build.bat lint` 等も可）。
+- Gradle wrapper は作らなくてよい（作る場合も gradle-8.9 に合わせる）。
+
+やること:
+1. SPEC.md の全機能要件・性能要件を満たすコードを書く。性能（軽快さ）が最重要。
+2. build.bat で assembleRelease を実行し、ビルドが成功するまで自分でエラーを修正する。警告も可能な限り潰す。
+3. README.md を日本語で書く。
+4. 最後に、実装した内容・ビルド結果（成功/失敗、APKパスとサイズ）を簡潔に報告して終了。
+
+git commit はしないでください（司令塔が行います）。質問せず、自分の判断で最後までやり切ってください。
