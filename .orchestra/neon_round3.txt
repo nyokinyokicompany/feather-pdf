@@ -1,0 +1,8 @@
+あなたは実装担当のAndroidエンジニア「Neon」です。カレントディレクトリ D:\AI_SSD\AndroidPDF\AndroidPDF のPDFビューアアプリについて、レビュー .orchestra/review_round2.md の「改善提案」1〜3（および内訳の減点理由）をすべて修正してください。必ずレビュー全文を読んでから着手してください。
+
+1. 画面回転・サイズ変更時のスクロールアンカー誤判定: onSizeChanged（onLayout前）で新しい高さと古い子View座標を比較してしまう問題。onScrolled 等で常に最新アンカー（中央ページと相対オフセット）を保持し、サイズ変更時はその保持値を使って復元するなど、確実に正しいページを維持する方式にする。
+2. ズーム中に画面外へデタッチされたViewHolderの ZoomTile 即時解放: onViewDetachedFromWindow で cancelTile() と clearZoomTile() を行う（1xのbaseBitmapは維持）。再アタッチ時に必要ならタイルを再要求すること。
+3. close() と描画完了の競合: cacheLock 内で closed を再確認し、close後にキャッシュへputされないようにする。必要なら解放処理の最後でも evictAll。
+
+注意: 既存の性能（軽快さ）や他機能を劣化させないこと。修正後、`cmd /c D:\AI_SSD\AndroidPDF\toolchain\build.bat` (assembleRelease) と `cmd /c D:\AI_SSD\AndroidPDF\toolchain\build.bat lint` を実行し、両方成功・警告ゼロにすること。
+最後に、各指摘への対応内容（ファイル名付き）とビルド結果を簡潔に報告して終了。git commit はしないでください。質問せずやり切ってください。

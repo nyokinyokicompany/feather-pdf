@@ -153,6 +153,7 @@ class PdfRenderEngine(context: Context) {
     fun getCachedBase(pageIndex: Int, expectedWidthPx: Int): RefCountedBitmap? {
         val safeW = clampBaseWidth(expectedWidthPx)
         synchronized(cacheLock) {
+            if (closed) return null
             val cached = baseCache.get(pageIndex) ?: return null
             if (cached.widthPx != safeW) return null
             return if (cached.bitmap.retain()) cached.bitmap else null
@@ -190,24 +191,20 @@ class PdfRenderEngine(context: Context) {
 
             val rendered = renderBaseOnWorker(pageIndex, safeW) ?: return@enqueueTask
 
-            if (closed) {
-                rendered.release()
-                return@enqueueTask
-            }
-
-            // Store in LruCache (cache takes ownership of initial ref if width still matches)
-            val forCaller: RefCountedBitmap?
-            synchronized(cacheLock) {
+            // Store in LruCache (cache takes ownership of initial ref if width still matches).
+            // Re-check closed inside cacheLock to eliminate any race with close().
+            val forCaller: RefCountedBitmap? = synchronized(cacheLock) {
+                if (closed) {
+                    rendered.release()
+                    return@enqueueTask
+                }
                 if (currentBaseWidthPx == 0 || currentBaseWidthPx == safeW) {
                     currentBaseWidthPx = safeW
-                    if (rendered.retain()) {
-                        forCaller = rendered
-                    } else {
-                        forCaller = null
-                    }
+                    val callerRef = if (rendered.retain()) rendered else null
                     baseCache.put(pageIndex, CachedPage(safeW, rendered))
+                    callerRef
                 } else {
-                    forCaller = rendered
+                    rendered
                 }
             }
 
@@ -297,10 +294,11 @@ class PdfRenderEngine(context: Context) {
      * Clears base cache when viewport width changes (rotation / multi-window resize).
      */
     fun onViewportWidthChanged(newWidthPx: Int) {
-        if (newWidthPx <= 0) return
+        if (newWidthPx <= 0 || closed) return
         val clampedW = clampBaseWidth(newWidthPx)
         val baseWidthChanged: Boolean
         synchronized(cacheLock) {
+            if (closed) return
             baseWidthChanged = clampedW != currentBaseWidthPx
             if (baseWidthChanged) {
                 currentBaseWidthPx = clampedW
@@ -327,8 +325,11 @@ class PdfRenderEngine(context: Context) {
     }
 
     fun close() {
-        if (closed) return
-        closed = true
+        synchronized(cacheLock) {
+            if (closed) return
+            closed = true
+            baseCache.evictAll()
+        }
         synchronized(queueLock) {
             for (t in pendingTasks) {
                 t.canceled.set(true)
@@ -344,9 +345,6 @@ class PdfRenderEngine(context: Context) {
                 )
             )
             queueLock.notifyAll()
-        }
-        synchronized(cacheLock) {
-            baseCache.evictAll()
         }
     }
 
@@ -787,6 +785,9 @@ class PdfRenderEngine(context: Context) {
         }
         tempCacheFile = null
         if (closing) {
+            synchronized(cacheLock) {
+                baseCache.evictAll()
+            }
             bitmapPool.close()
         } else {
             bitmapPool.clear()

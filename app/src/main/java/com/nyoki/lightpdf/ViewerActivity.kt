@@ -72,6 +72,13 @@ class ViewerActivity : Activity() {
     private var pendingRestoreZoom: Float = 1f
     private var pendingRestorePanXFraction: Float = 0f
 
+    // Continuously maintained scroll anchor updated while layout coordinates are valid
+    private var lastAnchorPage: Int = 0
+    private var lastAnchorOffsetFraction: Float = 0f
+    private var lastAnchorCenterFraction: Float = 0f
+    private var lastAnchorAtDocumentTop: Boolean = true
+    private var hasScrollAnchor: Boolean = false
+
     private var pageJumpDialog: Dialog? = null
     private var pageGapPx: Int = 0
 
@@ -253,21 +260,36 @@ class ViewerActivity : Activity() {
 
             override fun onViewportSettled() {
                 if (isDocumentReady) {
+                    updateLatestScrollAnchor()
                     pagesAdapter.refreshHighResTiles(pdfRecyclerView)
                 }
             }
 
-            override fun onViewportWidthChanged(newWidth: Int, oldWidth: Int) {
+            override fun onViewportWidthChanged(
+                newWidth: Int,
+                oldWidth: Int,
+                newHeight: Int,
+                oldHeight: Int
+            ) {
                 if (!isDocumentReady) return
-                val (anchorPage, anchorFrac) = captureScrollAnchor()
+                if (!hasScrollAnchor) {
+                    updateLatestScrollAnchor(referenceHeight = oldHeight)
+                }
+                val anchorPage = if (hasScrollAnchor) lastAnchorPage else currentPage
+                val anchorCenterFrac = lastAnchorCenterFraction
+                val anchorAtTop = lastAnchorAtDocumentTop
+
                 engine.onViewportWidthChanged(newWidth)
                 pagesAdapter.setViewportWidth(newWidth, pdfRecyclerView.panX, pdfRecyclerView)
-                restoreScrollAnchor(anchorPage, anchorFrac)
+                restoreScrollAnchorForViewportChange(
+                    page = anchorPage,
+                    centerFraction = anchorCenterFrac,
+                    atDocumentTop = anchorAtTop,
+                    viewportHeight = newHeight
+                )
                 pdfRecyclerView.post {
                     if (isDocumentReady) {
-                        val first = layoutManager.findFirstVisibleItemPosition().coerceAtLeast(0)
-                        val last = layoutManager.findLastVisibleItemPosition().coerceAtLeast(first)
-                        pagesAdapter.prefetchAround(first, last)
+                        updateCurrentPageAndPrefetch(showIndicator = false)
                         pagesAdapter.refreshHighResTiles(pdfRecyclerView)
                     }
                 }
@@ -305,6 +327,7 @@ class ViewerActivity : Activity() {
             override fun onScrubToPage(pageIndex: Int) {
                 if (!isDocumentReady) return
                 currentPage = pageIndex
+                setDirectScrollAnchor(pageIndex, offsetFraction = 0f)
                 layoutManager.scrollToPositionWithOffset(pageIndex, 0)
                 updatePageIndicatorText(withZoom = false)
             }
@@ -388,6 +411,7 @@ class ViewerActivity : Activity() {
             )
 
             restoreScrollAnchor(targetPage, pendingRestoreFraction)
+            setDirectScrollAnchor(targetPage, pendingRestoreFraction)
             showPageIndicator(withZoom = targetZoom > 1.05f)
 
             pdfRecyclerView.post {
@@ -412,12 +436,14 @@ class ViewerActivity : Activity() {
         }
     }
 
-    private fun findCenterPageIndex(): Int {
+    private fun updateLatestScrollAnchor(referenceHeight: Int = pdfRecyclerView.height): Int {
         val first = layoutManager.findFirstVisibleItemPosition()
         if (first == RecyclerView.NO_POSITION) return RecyclerView.NO_POSITION
 
-        val centerY = pdfRecyclerView.height / 2
+        val effectiveHeight = referenceHeight.takeIf { it > 0 } ?: pdfRecyclerView.height
+        val centerY = effectiveHeight / 2
         var bestPage = first
+        var bestView: View? = null
         var bestDist = Int.MAX_VALUE
         for (i in 0 until pdfRecyclerView.childCount) {
             val child = pdfRecyclerView.getChildAt(i)
@@ -431,10 +457,48 @@ class ViewerActivity : Activity() {
             if (dist < bestDist) {
                 bestDist = dist
                 bestPage = pos
+                bestView = child
                 if (dist == 0) break
             }
         }
+
+        val view = bestView ?: layoutManager.findViewByPosition(bestPage)
+        if (view != null && view.height > 0) {
+            val h = view.height.toFloat()
+            lastAnchorPage = bestPage
+            lastAnchorOffsetFraction = ((-view.top).toFloat() / h).coerceIn(-4f, 1f)
+            lastAnchorCenterFraction = ((centerY - view.top).toFloat() / h).coerceIn(0f, 1f)
+            lastAnchorAtDocumentTop = bestPage == 0 && view.top >= 0
+            hasScrollAnchor = true
+        }
         return bestPage
+    }
+
+    private fun setDirectScrollAnchor(
+        page: Int,
+        offsetFraction: Float,
+        viewportHeight: Int = pdfRecyclerView.height
+    ) {
+        if (pageCount <= 0) return
+        val safePage = page.coerceIn(0, pageCount - 1)
+        val clampedFraction = offsetFraction.coerceIn(-4f, 1f)
+        val pageH = pagesAdapter.computePageHeight(safePage)
+        val effectiveHeight = viewportHeight.takeIf { it > 0 } ?: pdfRecyclerView.height
+        var offsetPx = -(pageH * clampedFraction).roundToInt()
+        if (safePage == 0) {
+            offsetPx = offsetPx.coerceAtMost(0)
+        } else if (effectiveHeight > 0) {
+            offsetPx = offsetPx.coerceAtMost(effectiveHeight / 2)
+        }
+        lastAnchorPage = safePage
+        lastAnchorOffsetFraction = clampedFraction
+        lastAnchorAtDocumentTop = safePage == 0 && offsetPx >= 0
+        lastAnchorCenterFraction = if (pageH > 0 && effectiveHeight > 0) {
+            ((effectiveHeight / 2f - offsetPx) / pageH.toFloat()).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+        hasScrollAnchor = true
     }
 
     private fun updateCurrentPageAndPrefetch(showIndicator: Boolean) {
@@ -442,7 +506,7 @@ class ViewerActivity : Activity() {
         val last = layoutManager.findLastVisibleItemPosition()
         if (first == RecyclerView.NO_POSITION) return
 
-        val centerPage = findCenterPageIndex()
+        val centerPage = updateLatestScrollAnchor()
         if (centerPage != RecyclerView.NO_POSITION) {
             currentPage = centerPage.coerceIn(0, (pageCount - 1).coerceAtLeast(0))
         }
@@ -555,6 +619,7 @@ class ViewerActivity : Activity() {
             } else {
                 val targetIndex = num - 1
                 currentPage = targetIndex
+                setDirectScrollAnchor(targetIndex, offsetFraction = 0f)
                 layoutManager.scrollToPositionWithOffset(targetIndex, 0)
                 showPageIndicator(withZoom = false)
                 pdfRecyclerView.post {
@@ -591,12 +656,17 @@ class ViewerActivity : Activity() {
     }
 
     private fun captureScrollAnchor(): Pair<Int, Float> {
-        val centerPage = findCenterPageIndex()
-        if (centerPage == RecyclerView.NO_POSITION) return currentPage to 0f
-        val view = layoutManager.findViewByPosition(centerPage) ?: return centerPage to 0f
-        val h = view.height.coerceAtLeast(1)
-        val fraction = ((-view.top).toFloat() / h.toFloat()).coerceIn(-4f, 1f)
-        return centerPage to fraction
+        if (!pdfRecyclerView.isLayoutRequested &&
+            pdfRecyclerView.childCount > 0 &&
+            pdfRecyclerView.height > 0
+        ) {
+            updateLatestScrollAnchor()
+        }
+        return if (hasScrollAnchor) {
+            lastAnchorPage to lastAnchorOffsetFraction
+        } else {
+            currentPage to 0f
+        }
     }
 
     private fun restoreScrollAnchor(page: Int, offsetFraction: Float) {
@@ -607,6 +677,29 @@ class ViewerActivity : Activity() {
             offsetPx = offsetPx.coerceAtMost(0)
         } else if (pdfRecyclerView.height > 0) {
             offsetPx = offsetPx.coerceAtMost(pdfRecyclerView.height / 2)
+        }
+        layoutManager.scrollToPositionWithOffset(safePage, offsetPx)
+    }
+
+    private fun restoreScrollAnchorForViewportChange(
+        page: Int,
+        centerFraction: Float,
+        atDocumentTop: Boolean,
+        viewportHeight: Int
+    ) {
+        val safePage = page.coerceIn(0, (pageCount - 1).coerceAtLeast(0))
+        val offsetPx = if (atDocumentTop && safePage == 0) {
+            0
+        } else {
+            val pageH = pagesAdapter.computePageHeight(safePage)
+            val centerY = (viewportHeight.takeIf { it > 0 } ?: pdfRecyclerView.height) / 2
+            var computed = (centerY - pageH * centerFraction.coerceIn(0f, 1f)).roundToInt()
+            if (safePage == 0) {
+                computed = computed.coerceAtMost(0)
+            } else if (centerY > 0) {
+                computed = computed.coerceAtMost(centerY)
+            }
+            computed
         }
         layoutManager.scrollToPositionWithOffset(safePage, offsetPx)
     }

@@ -17,6 +17,50 @@ class PdfPagesAdapter(
     private var panX: Float = 0f
     private var nightMode: Boolean = false
     private var tileGeneration: Int = 0
+    private var attachedRecyclerView: RecyclerView? = null
+    private var attachTileRefreshScheduled: Boolean = false
+
+    private val attachTileRefreshRunnable = Runnable {
+        attachTileRefreshScheduled = false
+        val rv = attachedRecyclerView ?: return@Runnable
+        if (!rv.isAttachedToWindow || zoomScale <= 1.05f) return@Runnable
+        val interacting = if (rv is ZoomablePdfRecyclerView) {
+            rv.isViewportInteracting()
+        } else {
+            rv.scrollState != RecyclerView.SCROLL_STATE_IDLE
+        }
+        if (!interacting) {
+            refreshHighResTiles(rv)
+        }
+    }
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        attachedRecyclerView = recyclerView
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        recyclerView.removeCallbacks(attachTileRefreshRunnable)
+        attachTileRefreshScheduled = false
+        if (attachedRecyclerView === recyclerView) {
+            attachedRecyclerView = null
+        }
+    }
+
+    private fun scheduleTileRefreshIfIdle() {
+        val rv = attachedRecyclerView ?: return
+        if (zoomScale <= 1.05f || attachTileRefreshScheduled) return
+        val interacting = if (rv is ZoomablePdfRecyclerView) {
+            rv.isViewportInteracting()
+        } else {
+            rv.scrollState != RecyclerView.SCROLL_STATE_IDLE
+        }
+        if (!interacting) {
+            attachTileRefreshScheduled = true
+            rv.post(attachTileRefreshRunnable)
+        }
+    }
 
     fun setDocument(
         ratios: FloatArray,
@@ -195,14 +239,29 @@ class PdfPagesAdapter(
                 (visBottom + overscan).coerceAtMost(pageH)
             )
 
+            if (holder.tileHandle != null &&
+                holder.pendingTileZoomedW == zoomedW &&
+                holder.pendingTileRegion == reqRegion
+            ) {
+                continue
+            }
+
             holder.cancelTile()
+            holder.pendingTileZoomedW = zoomedW
+            holder.pendingTileRegion.set(reqRegion)
             holder.tileHandle = engine.requestZoomTile(
                 pageIndex = pos,
                 zoomedPageWidthPx = zoomedW,
                 zoomedPageHeightPx = pageH,
                 region = reqRegion
             ) { tile ->
-                if (holder.boundPageIndex == pos && zoomScale > 1.05f) {
+                holder.tileHandle = null
+                holder.pendingTileZoomedW = 0
+                holder.pendingTileRegion.setEmpty()
+                if (holder.boundPageIndex == pos &&
+                    zoomScale > 1.05f &&
+                    holder.pageView.isAttachedToWindow
+                ) {
                     holder.pageView.setZoomTile(tile)
                 } else {
                     tile.bitmap.release()
@@ -323,6 +382,20 @@ class PdfPagesAdapter(
         ) {
             bindBaseBitmap(holder, pos)
         }
+
+        if (zoomScale > 1.05f &&
+            holder.pageView.getCurrentZoomTile() == null &&
+            holder.tileHandle == null
+        ) {
+            scheduleTileRefreshIfIdle()
+        }
+    }
+
+    override fun onViewDetachedFromWindow(holder: PageViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+        // Release high-res zoom tile immediately when scrolled off-screen (keep 1x baseBitmap)
+        holder.cancelTile()
+        holder.pageView.clearZoomTile()
     }
 
     private fun bindBaseBitmap(holder: PageViewHolder, position: Int) {
@@ -370,6 +443,8 @@ class PdfPagesAdapter(
         var boundTileGeneration: Int = -1
         var baseHandle: PdfRenderEngine.RenderHandle? = null
         var tileHandle: PdfRenderEngine.RenderHandle? = null
+        var pendingTileZoomedW: Int = 0
+        val pendingTileRegion = Rect()
 
         fun cancelBase() {
             baseHandle?.cancel()
@@ -379,6 +454,8 @@ class PdfPagesAdapter(
         fun cancelTile() {
             tileHandle?.cancel()
             tileHandle = null
+            pendingTileZoomedW = 0
+            pendingTileRegion.setEmpty()
         }
 
         fun cancelAll() {

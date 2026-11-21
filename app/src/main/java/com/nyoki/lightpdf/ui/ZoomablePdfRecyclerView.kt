@@ -39,7 +39,7 @@ class ZoomablePdfRecyclerView @JvmOverloads constructor(
         fun onZoomChanged(zoom: Float, panX: Float)
         fun onPanChanged(panX: Float)
         fun onViewportSettled()
-        fun onViewportWidthChanged(newWidth: Int, oldWidth: Int)
+        fun onViewportWidthChanged(newWidth: Int, oldWidth: Int, newHeight: Int, oldHeight: Int)
     }
 
     var zoomListener: ZoomListener? = null
@@ -163,6 +163,9 @@ class ZoomablePdfRecyclerView @JvmOverloads constructor(
 
     fun getEffectiveZoom(): Float = (committedZoom * transientScale).coerceIn(MIN_ZOOM, MAX_ZOOM)
 
+    fun isViewportInteracting(): Boolean =
+        isTransformActive || !panScroller.isFinished || scrollState != SCROLL_STATE_IDLE
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         if (w > 0 && oldw > 0 && w != oldw) {
@@ -173,7 +176,7 @@ class ZoomablePdfRecyclerView @JvmOverloads constructor(
             } else {
                 0f
             }
-            zoomListener?.onViewportWidthChanged(w, oldw)
+            zoomListener?.onViewportWidthChanged(w, oldw, h, oldh)
         }
     }
 
