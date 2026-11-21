@@ -50,20 +50,15 @@ Androidスマートフォンで「めちゃめちゃ軽快に」PDFを閲覧す�
 ### 前提環境
 - JDK 17
 - Android SDK (`compileSdk 35`, `build-tools;35.0.0`, `minSdk 26`)
-- Gradle 8.9
+- Gradle は同梱の Gradle Wrapper（8.9）が自動で取得します
+
+Android Studio で開いてビルドするのが一番簡単です。コマンドラインの場合は、環境変数 `ANDROID_HOME` を設定するか、プロジェクト直下に `local.properties`（`sdk.dir=Android SDKのパス`）を置いてください。
 
 ### リリースAPKのビルド
 
-プロジェクト直下に `local.properties`（`sdk.dir=...`）を配置したうえで以下を実行します。
-
-```bat
-cmd /c D:\AI_SSD\AndroidPDF\toolchain\build.bat
-```
-
-または Gradle コマンドを直接実行します。
-
 ```bash
-gradle assembleRelease
+./gradlew assembleRelease      # macOS / Linux
+gradlew.bat assembleRelease    # Windows
 ```
 
 ビルドが成功すると、デバッグ署名済み（サイドロード可能）のリリースAPKが以下に生成されます。
@@ -74,6 +69,10 @@ app/build/outputs/apk/release/app-release.apk
 
 Lintチェックを実行する場合:
 
-```bat
-cmd /c D:\AI_SSD\AndroidPDF\toolchain\build.bat lint
+```bash
+./gradlew lint
 ```
+
+## ライセンス
+
+[0BSD（BSD Zero Clause License）](LICENSE)。商用・改変・再配布すべて自由で、著作権表示も不要です。無保証です。
